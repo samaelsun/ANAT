@@ -6,6 +6,8 @@ unsigned char main_timer_1ms;
 #define NORMAL_MODE
 //#define SCOPE_MODE
 
+unsigned char current_calibration_samples_count = 0;
+
 
 int main(void)
     {
@@ -64,12 +66,56 @@ int main(void)
 	    }
 	if (adc_conversion_ready(0))
 	    {
-	    //current_read = (float)((517 - ((signed int)adc_read(0))) * 0.00468750); // Lecture de l'ADC ajusté pour avoir des mA
-	    current_read = (float) adc_read(0);
-	    current_read = (-0.0000143934 * current_read * current_read * current_read)
-		    + (0.022306707 * current_read * current_read) - (12.5172850725 * current_read)
-		    + 2513.5726145723;
-	    current_read /= 1000.0; // conversion en amp
+		current_loop_enable = 0;
+	    if(current_calibration_samples_count < 20 )
+			{
+				current_calibration_offset += (float) adc_read(0);
+				current_calibration_samples_count++;
+				
+				//If the mean count is reached, just make the division to obtain the mean
+				if(current_calibration_samples_count == 20)
+					{
+						current_calibration_offset = current_calibration_offset / (float)(current_calibration_samples_count);
+						//current_calibration_offset = current_calibration_offset / 2;
+					}
+			}
+		else
+			{
+			current_loop_enable = 1;
+			//current_read = (float)((517 - ((signed int)adc_read(0))) * 0.00468750); // Lecture de l'ADC ajusté pour avoir des mA
+			current_read = (float) adc_read(0);
+		
+			// Ajout de l'offset de calib
+			current_read = current_calibration_offset - current_read;
+		
+			// conversion en volts
+			current_read = current_read * 5.0 / 1024.0;
+
+			// Gain de la boucle de courant
+			// Avec une charge resistive
+			//current_read = current_read * 0.95;
+			// Avec une charge inductive
+			
+			
+			/// ************************ polynomiale
+			//current_read = current_read * 0.5;
+			//current_read = ((current_read * current_read * 0.3955) -(0.1425 * current_read) + 0.0584 ) / 1000.0;
+
+
+
+			// Ajout de l'offset de la calibration
+			//current_read = current_calibration_offset - current_read;
+		
+			// conversion en milli ampères
+			//current_read = current_read * 1000.0;
+		
+			//current_read = (-0.0000143934 * current_read * current_read * current_read)
+				//+ (0.022306707 * current_read * current_read) - (12.5172850725 * current_read)
+				//+ 2513.5726145723;
+			//current_read /= 1000.0; // conversion en amp
+			}
+
+
 
 #ifdef NORMAL_MODE
 	    process_boucle_courant();

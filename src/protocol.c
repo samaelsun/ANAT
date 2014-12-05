@@ -99,16 +99,16 @@ unsigned char process_protocol_alloc_id(void)
 	protocol_id = '1';
 	protocol_last_id = '1';
 	state_tx = 1;
-	rs485_putchar('A');
+	//rs485_putchar('A');
 	break;
     case 1:
-	rs485_putchar('B');
+	//rs485_putchar('B');
 	if (!protocol_start_delay_ms)
 	    {
-	    rs485_putchar('C');
+	    //rs485_putchar('C');
 	    if (ENABLE_IN_READ)
 		{
-		rs485_putchar('D');
+		//rs485_putchar('D');
 		rs485_putchar(protocol_id);
 		protocol_transmit_delay_ms = 50;
 		state_tx = 2;
@@ -116,10 +116,10 @@ unsigned char process_protocol_alloc_id(void)
 	    }
 	break;
     case 2:
-	rs485_putchar('E');
+	//rs485_putchar('E');
 	if (!protocol_transmit_delay_ms)
 	    {
-	    rs485_putchar('F');
+	    //rs485_putchar('F');
 	    ENABLE_OUT_SET;
 	    last_flag = 1;
 	    state_tx = 100;
